@@ -1,0 +1,193 @@
+---
+title: "Homework Assignment 3"
+author: "Lang Lang"
+toc: true
+number-sections: true
+highlight-style: pygments
+engine: jupyter
+format: 
+  html: 
+    code-fold: true
+    html-math-method: katex
+  pdf: 
+    geometry: 
+      - top=30mm
+      - left=20mm
+---
+
+# Monty Hall
+## Write a function to simulate the experiment once. 
+```{python}
+import random
+# simulate Monty Hall experiment once
+def simulate_montyhall(ndoors, nempty): 
+  
+  # set up doors with rewards(reward) and doors without reward(empty).
+  # set one door has reward, others are empty
+  doors = ['reward'] + ['empty'] * (ndoors - 1)
+  random.shuffle(doors) # randomly shuffle the doors
+  pick = random.randint(0, ndoors - 1) # pick a door randomly
+  
+  # Host opens 'nempty' empty doors
+  # The opened doors are also not the picked door 
+  empty_doors = [
+    i for i in range(ndoors) 
+    if doors[i] == 'empty' 
+    and i != pick
+    ]
+  opened_doors = random.sample(empty_doors, nempty)
+  
+  
+  # check the remaining doors
+  remaining_doors = [
+    i for i in range(ndoors)
+    if i not in opened_doors and i != pick
+  ]
+  # calculate the results of two strategies
+  switch_result = doors[remaining_doors[0]] == 'reward' # switch to another door
+  no_switch_result = doors[pick] == 'reward' # continue with the initial choice
+
+  return {'switch': switch_result, 'no_switch': no_switch_result}
+```
+
+## Play this game with 3 doors and 1 empty a few times
+```{python}
+for _ in range(3):  # play this game for 3 times
+    result = simulate_montyhall(3, 1)
+    print(result)
+```
+
+## Play this game with 10 doors and 8 empty a few times.
+```{python}
+for _ in range(4):  # play this game for 4 times
+    result = simulate_montyhall(10, 8)
+    print(result)
+```
+
+## Write a function to demonstrate the Monty Hall problem through simulation. 
+```{python}
+# simulate Monty Hall experiment for mutiple rounds
+def simulate_trials(ndoors, nempty, ntrials): 
+  results = {'switch': 0, 'no_switch': 0}
+    
+  # run the experiment for ntrials times
+  for _ in range(ntrials):
+    outcome = simulate_montyhall(ndoors, nempty)
+    results['switch'] += outcome['switch']
+    results['no_switch'] += outcome['no_switch']
+    
+  # calculate winning probabilities
+  results['switch'] /= ntrials
+  results['no_switch'] /= ntrials
+
+  return results
+```
+
+## Apply your function with part b and c, both with 1000 trials. 
+```{python}
+# play this game with 3 doors and 1 empty for 1000 trials
+result_3doors = simulate_trials(3, 1, 1000)
+print(f"Results for 3 doors and 1 empty: {result_3doors}") 
+
+# play this game with 10 doors and 8 empty for 1000 trials
+result_10doors = simulate_trials(10, 8, 1000)
+print(f"Results for 10 doors and 8 empty: {result_10doors}")
+```
+
+
+# Game 24
+## List all the possible ways to group the four numbers.
+```{python}
+# list all the possible ways to groups the 4 numbers
+def list_groupings():
+    groupings = [
+        "((□ ○ □) ○ □) ○ □",
+        "(□ ○ (□ ○ □)) ○ □",
+        "□ ○ ((□ ○ □) ○ □)",
+        "□ ○ (□ ○ (□ ○ □))",
+        "((□ ○ □) ○ (□ ○ □))"
+    ]
+    return groupings
+
+# print the result
+groupings = list_groupings()
+print("Groupings:")
+for group in groupings:
+    print(group)
+    
+```
+
+## How many possible ways are there to check for a solution?
+```{python}
+# Calculate the total number of possibilities for the Game 24
+def calculate_total_possibilities():
+    
+    # calculate of all combinations of 4 numbers
+    number_permutations = 4 * 3 * 2 * 1 
+    
+    # calculate of 3 operators chosen from 4 possible operators 
+    operator_combinations = 4 ** 3
+    
+    # total groupings of numbers with parentheses
+    groupings = 5  # this is the result from part (a)
+    
+    # calculate the total possibilities
+    total = number_permutations * operator_combinations * groupings
+    return total
+
+# print result
+total_possibilities = calculate_total_possibilities()
+print("Total possibilities:", total_possibilities)
+```
+
+## Write a function to solve the problem in a brutal force way
+```{python}
+from itertools import permutations, product
+# using brute force to solve the Game 24 problem
+def solve_24_game(numbers):
+    # list the operators and solutions
+    operators = ['+', '-', '*', '/']
+    solutions = []
+
+    # set up grouping templates from part (a)
+    grouping_templates = [
+        "(({} {} {}) {} {}) {} {}",
+        "({} {} ({} {} {})) {} {}",
+        "{} {} (({} {} {}) {} {})",
+        "{} {} ({} {} ({} {} {}))",
+        "(({} {} {}) {} ({} {} {}))"
+    ]
+    
+    # Generate all permutations of the numbers
+    for perm in permutations(numbers):
+        # Generate all combinations of operators
+        for ops in product(operators, repeat=3):
+            # Try all possible groupings
+            try:
+                # Evaluate each with grouping template
+                for template in grouping_templates:
+                    # Fill the template with numbers and operators
+                    expr = template.format(
+                        perm[0], ops[0], perm[1],
+                        ops[1], perm[2],
+                        ops[2], perm[3]
+                    )
+                    # Evaluate the expression
+                    if abs(eval(expr) - 24) < 1e-6:
+                        solutions.append(expr)
+            except ZeroDivisionError:
+                # Ignore division by zero errors
+                continue
+
+    return solutions
+
+# print result
+numbers = [8, 1, 3, 3]
+solutions = solve_24_game(numbers)
+print("Solutions:")
+for solution in solutions:
+    print(solution)
+```
+
+
+
